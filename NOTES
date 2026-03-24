@@ -1,0 +1,105 @@
+ <!-- # FOR addproductsize.php
+ #to fetch sizes not already assigned to a product -->
+ <?php
+include 'databaseconn.php';
+
+$product_id = intval($_GET['product_id']); // safe
+
+$sql = "SELECT * FROM sizes 
+        WHERE size_id NOT IN 
+        (SELECT size_id FROM product_sizes WHERE product_id = $product_id)";
+
+$result = $conn->query($sql);
+
+$options = "<option value=''>-- Select Size --</option>";
+
+while ($row = $result->fetch_assoc()) {
+    $options .= "<option value='" . $row['size_id'] . "'>"
+        . htmlspecialchars($row['size_name']) . "</option>";
+}
+
+echo $options;
+?>
+    
+<!-- #we have to add this script before the end of form tag in dashbord.php -->
+<script>
+    // 1️⃣ Select the product dropdown by its ID and listen for changes
+document.getElementById('product_id').addEventListener('change', function () {
+
+    // 2️⃣ Get the value of the selected product
+    // 'this' refers to the product dropdown
+    // 'this.value' will be the product_id chosen by the user
+    let productId = this.value;
+
+    // 3️⃣ If no product is selected (user selects the first empty option)
+    if (productId === "") {
+        // 3a. Reset the size dropdown to show a default message
+        document.getElementById("size_id").innerHTML =
+            "<option value=''>-- Select a product first --</option>";
+        // 3b. Stop executing the rest of the function
+        return;
+    }
+
+    // 4️⃣ If a product is selected, fetch available sizes from the server
+    // fetch() makes an HTTP request to 'fetch_sizes.php'
+    // We pass the selected product ID as a GET parameter
+    fetch("fetch_sizes.php?product_id=" + productId)
+        // 4a. Convert the server response into text (the HTML <option> elements)
+        .then(response => response.text())
+        // 4b. 'data' now contains the HTML <option> tags returned by PHP
+        .then(data => {
+            // 4c. Replace the inner HTML of the size dropdown with the fetched options
+            // This updates the dropdown with only the sizes not already assigned to the selected product
+            document.getElementById("size_id").innerHTML = data;
+        });
+});
+    </script>
+<!-- end -->
+
+
+<!-- next note -->
+ <!-- two way to implement drop down box on mouse enter -->
+  <!-- first using core css using tailwind -->
+  <div class="relative group mx-4 px-4 ">
+                <span>Shop By</span>
+                <button class="text-slate-700 border border-slate-300 px-4 py-2 rounded transition-colors cursor-pointer duration-200 font-medium hover:bg-gray-100 ">Categories</button>
+                <div class="absolute left-4 top-full mt-0 w-30 ml-5 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                    <a href="mensproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100 rounded-t-lg">Mens</a>
+                    <a href="womensproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100">Womens</a>
+                    <a href="kidsproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100">Kids</a>
+                    <a href="unisexproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100 rounded-b-lg">Unisex</a>
+                </div>
+            </div>
+            <!--how it work//---group class on parent div - marks the container as a hover group
+Initial state - dropdown has opacity-0 invisible (hidden by default)
+On hover - group-hover:opacity-100 group-hover:visible triggers automatically when you hover over the parent element
+Transition - transition-all duration-200 smoothly animates the visibility change  -->
+
+<!-- secondway next way using js -->
+ <div id="cat" class="relative group">
+                        <span class="text-slate-700  transition-colors cursor-pointer duration-200 font-medium">Categories</span>
+                        <div class="dropdownbox absolute hidden left-0 mt-0 w-30 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                            <a href="mensproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100 rounded-t-lg">Mens</a>
+                            <a href="womensproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100">Womens</a>
+                            <a href="kidsproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100">Kids</a>
+                            <a href="unisexproduct.php" class="block px-4 py-2 text-slate-700 hover:text-amber-500 hover:bg-gray-100 ">Unisex</a>
+                        </div>
+                        <script>
+                            // Show/hide dropdown on mouse enter/leave
+                            document.getElementById('cat').addEventListener('mouseenter', function() {
+                                const dropdown = this.querySelector('.dropdownbox');
+                                dropdown.classList.remove('hidden');
+                                dropdown.classList.add('block');
+                            });
+
+                            document.getElementById('cat').addEventListener('mouseleave', function() {
+                                const dropdown = this.querySelector('.dropdownbox');
+                                dropdown.classList.add('hidden');
+                                dropdown.classList.remove('block');
+                            });
+                        </script>
+                    </div>
+
+
+
+                    <!--end of dropdown box-->
